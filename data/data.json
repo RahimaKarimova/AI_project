@@ -1,0 +1,126 @@
+{
+    "courses": [
+        {
+            "course_id": "C101",
+            "name": "Intro to AI",
+            "instructor_id": "I201",
+            "duration": 2,
+            "capacity": 145,
+            "preferred_timeslots": ["Monday 9-11", "Wednesday 10-12"],
+            "preferred_rooms": ["R101", "R103"]
+        },
+        {
+            "course_id": "C102",
+            "name": "Data Structures",
+            "instructor_id": "I202",
+            "duration": 1,
+            "capacity": 30,
+            "preferred_timeslots": ["Monday 1-2", "Wednesday 2-3"],
+            "preferred_rooms": ["R101"]
+        },
+        {
+            "course_id": "C103",
+            "name": "Operating Systems",
+            "instructor_id": "I203",
+            "duration": 2,
+            "capacity": 35,
+            "preferred_timeslots": ["Tuesday 9-11", "Thursday 10-12"],
+            "preferred_rooms": ["R102", "R104"]
+        },
+        {
+            "course_id": "C104",
+            "name": "Database Systems",
+            "instructor_id": "I204",
+            "duration": 2,
+            "capacity": 50,
+            "preferred_timeslots": ["Tuesday 1-3", "Thursday 1-3"],
+            "preferred_rooms": ["R105"]
+        },
+        {
+            "course_id": "C105",
+            "name": "Machine Learning",
+            "instructor_id": "I201",
+            "duration": 3,
+            "capacity": 40,
+            "preferred_timeslots": ["Monday 3-6", "Wednesday 3-6"],
+            "preferred_rooms": ["R101", "R103"]
+        },
+        {
+            "course_id": "C106",
+            "name": "Computer Networks",
+            "instructor_id": "I202",
+            "duration": 1,
+            "capacity": 25,
+            "preferred_timeslots": ["Tuesday 10-11", "Thursday 2-3"],
+            "preferred_rooms": ["R104"]
+        }
+    ],
+    "instructors": [
+        {
+            "instructor_id": "I201",
+            "name": "Dr. Smith",
+            "available_times": ["Monday 9-11", "Monday 3-6", "Wednesday 10-12", "Wednesday 3-6", "Friday 1-3"],
+            "preferred_breaks": ["12-1"]
+        },
+        {
+            "instructor_id": "I202",
+            "name": "Prof. Brown",
+            "available_times": ["Monday 1-2", "Wednesday 2-3", "Tuesday 10-11", "Thursday 2-3"]
+        },
+        {
+            "instructor_id": "I203",
+            "name": "Dr. Taylor",
+            "available_times": ["Tuesday 9-11", "Thursday 10-12", "Friday 1-3"],
+            "preferred_breaks": ["11-12"]
+        },
+        {
+            "instructor_id": "I204",
+            "name": "Prof. Williams",
+            "available_times": ["Tuesday 1-3", "Thursday 1-3", "Friday 9-11"],
+            "preferred_breaks": ["10-11"]
+        }
+    ],
+    "rooms": [
+        {
+            "room_id": "R101",
+            "capacity": 40,
+            "available_times": ["Monday 9-11", "Monday 1-2", "Wednesday 10-12", "Wednesday 2-3", "Monday 3-6", "Wednesday 3-6"]
+        },
+        {
+            "room_id": "R102",
+            "capacity": 45,
+            "available_times": ["Monday 9-11", "Tuesday 9-11", "Wednesday 10-12", "Thursday 10-12"]
+        },
+        {
+            "room_id": "R103",
+            "capacity": 50,
+            "available_times": ["Monday 9-11", "Monday 3-6", "Wednesday 3-6", "Friday 1-3"]
+        },
+        {
+            "room_id": "R104",
+            "capacity": 35,
+            "available_times": ["Tuesday 9-11", "Tuesday 10-11", "Thursday 10-12", "Thursday 2-3"]
+        },
+        {
+            "room_id": "R105",
+            "capacity": 50,
+            "available_times": ["Tuesday 1-3", "Thursday 1-3", "Friday 9-11"]
+        }
+    ],
+    "timeslots": [
+        "Monday 9-11",
+        "Monday 1-2",
+        "Monday 3-6",
+        "Tuesday 9-11",
+        "Tuesday 10-11",
+        "Tuesday 1-3",
+        "Wednesday 10-12",
+        "Wednesday 2-3",
+        "Wednesday 3-6",
+        "Thursday 10-12",
+        "Thursday 1-3",
+        "Thursday 2-3",
+        "Friday 9-11",
+        "Friday 1-3"
+    ]
+}
