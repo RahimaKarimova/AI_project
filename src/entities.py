@@ -1,41 +1,19 @@
-class Course:
-    def __init__(self, course_id, name, instructor_id, duration, capacity, preferred_timeslots=None, preferred_rooms=None):
-        self.course_id = course_id
-        self.name = name
-        self.instructor_id = instructor_id
-        self.duration = duration
-        self.capacity = capacity
-        self.preferred_timeslots = preferred_timeslots or []
-        self.preferred_rooms = preferred_rooms or []
-
-    def __repr__(self):
-        return f"Course({self.course_id}, {self.name}, {self.instructor_id}, Capacity: {self.capacity}, Duration: {self.duration})"
-
-
-class Instructor:
-    def __init__(self, instructor_id, name, available_times=None, preferred_breaks=None):
-        self.instructor_id = instructor_id
-        self.name = name
-        self.available_times = available_times or []
-        self.preferred_breaks = preferred_breaks or []
-
-    def __repr__(self):
-        return f"Instructor({self.instructor_id}, {self.name})"
-
-
 class Room:
-    def __init__(self, room_id, capacity, available_times=None):
-        self.room_id = room_id
-        self.capacity = capacity
-        self.available_times = available_times or []
+    def __init__(self, room_id, capacity, version, availability, floor):
+        self.room_id = room_id  # Unique ID for the room
+        self.capacity = capacity  # Maximum occupancy of the room
+        self.version = version  # Room type (e.g., standard, deluxe, suite)
+        self.availability = availability  # Whether the room is available (True or False)
+        self.floor = floor  # Floor number where the room is located
 
     def __repr__(self):
-        return f"Room({self.room_id}, Capacity: {self.capacity})"
+        return f"Room(ID: {self.room_id}, Capacity: {self.capacity}, Version: {self.version}, Available: {self.availability}, Floor: {self.floor})"
 
-
-class Timeslot:
-    def __init__(self, timeslot_id):
-        self.timeslot_id = timeslot_id
+class Booking:
+    def __init__(self, num_guests, arrival_dates, room_type):
+        self.num_guests = num_guests  # Total number of guests in the booking
+        self.arrival_dates = arrival_dates  # List of dates the guests will stay
+        self.room_type = room_type  # Preferred room type requested by the guest
 
     def __repr__(self):
-        return f"Timeslot({self.timeslot_id})"
+        return f"Booking(Guests: {self.num_guests}, Dates: {self.arrival_dates}, Room Type: {self.room_type})"

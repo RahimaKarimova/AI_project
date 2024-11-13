@@ -1,61 +1,43 @@
-from entities import Course, Instructor, Room, Timeslot
-# constraints.py
+from entities import Room, Booking
 
-def check_constraints(course, timeslot, room, schedule, courses, instructors):
-    """Check if assigning a course to a timeslot and room satisfies all hard constraints."""
-    # Get the instructor of the course being assigned
-    instructor = next(inst for inst in instructors if inst.instructor_id == course.instructor_id)
+def check_constraints(booking, room, rooms):
+    print(f"Booking type: {type(booking)}")  # Should be <class 'Booking'>
+    print(f"Room type: {type(room)}")        # Should be <class 'Room'>
+    """Check if assigning a booking to a room satisfies all hard constraints."""
+    # Check if the room is available
+    if not room.availability:
+        return False, f"Room {room.room_id} is not available"
 
-    # Check if the instructor is available at the timeslot
-    if timeslot.timeslot_id not in instructor.available_times:
-        return False, f"Instructor {instructor.name} not available at {timeslot.timeslot_id}"
+    # Check if the room has enough capacity for the number of guests in the booking
+    if room.capacity < booking.num_guests:
+        return False, f"Room {room.room_id} capacity ({room.capacity}) is less than the number of guests ({booking.num_guests})"
 
-    # Check if the room is available at the timeslot
-    if timeslot.timeslot_id not in room.available_times:
-        return False, f"Room {room.room_id} not available at {timeslot.timeslot_id}"
+    # Check if the room type matches the preferred room type in the booking
+    if room.version != booking.room_type:
+        return False, f"Room {room.room_id} is of type {room.version}, but {booking.room_type} was requested"
 
-    # Check if the room has enough capacity for the course
-    if room.capacity < course.capacity:
-        return False, f"Room {room.room_id} capacity ({room.capacity}) less than course capacity ({course.capacity})"
-
-    # Loop through all assigned courses to check for conflicts
-    for assigned_course_id, (assigned_timeslot, assigned_room) in schedule.items():
-        assigned_course = next(c for c in courses if c.course_id == assigned_course_id)
-        assigned_instructor = next(inst for inst in instructors if inst.instructor_id == assigned_course.instructor_id)
-
-        # Check if the instructor is teaching another course at the same timeslot
-        if assigned_timeslot.timeslot_id == timeslot.timeslot_id and assigned_instructor.instructor_id == instructor.instructor_id:
-            return False, f"Instructor {instructor.name} is already teaching at {timeslot.timeslot_id}"
-
-        # Check if the room is already occupied at the same timeslot
-        if assigned_timeslot.timeslot_id == timeslot.timeslot_id and assigned_room.room_id == room.room_id:
-            return False, f"Room {room.room_id} is already occupied at {timeslot.timeslot_id}"
+    # Additional constraint: Check if any rooms in the same floor are booked during the arrival dates
+    for other_room in rooms:
+        if other_room.floor == room.floor and not other_room.availability:
+            return False, f"Room {room.room_id} on floor {room.floor} has conflicting availability"
 
     return True, None  # All hard constraints are satisfied
 
-
-# constraints.py
-
-def calculate_soft_constraints_score(schedule, courses, instructors):
-    """Calculate individual scores for the soft constraints for each scheduled course."""
+def calculate_soft_constraints_score(bookings, rooms):
+    """Calculate scores for the soft constraints for each booking."""
     scores = {}
-    weight_break_time = -1  # Negative weight to penalize scheduling during preferred breaks
-    weight_time_preference = 2  # Positive weight to reward preferred timeslots
+    weight_capacity_excess = -1  # Penalize rooms that have much higher capacity than required
+    weight_floor_preference = 2  # Reward preferred floor matches if specified in booking
 
-    for course_id, (timeslot, room) in schedule.items():
-        course = next(course for course in courses if course.course_id == course_id)
-        instructor = next(inst for inst in instructors if inst.instructor_id == course.instructor_id)
-
+    for booking in bookings:
         score = 0
 
-        # Soft constraint: Preferred timeslot match
-        if timeslot.timeslot_id in course.preferred_timeslots:
-            score += weight_time_preference
+        # Soft constraint: Minimize unused capacity
+        assigned_room = next((room for room in rooms if room.version == booking.room_type and room.availability), None)
+        if assigned_room and assigned_room.capacity > booking.num_guests:
+            score += weight_capacity_excess * (assigned_room.capacity - booking.num_guests)
 
-        # Soft constraint: Avoid scheduling during instructor's preferred break time
-        if timeslot.timeslot_id in instructor.preferred_breaks:
-            score += weight_break_time
-
-        scores[course_id] = score
+        # Optional: Add more soft constraints if there are specific preferences (e.g., floor preference)
+        scores[booking.num_guests] = score
 
     return scores

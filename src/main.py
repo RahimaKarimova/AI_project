@@ -5,39 +5,39 @@ from scheduler import Scheduler
 
 if __name__ == "__main__":
     # Load data
-    file_path = '../data/data.json'  # Adjust this path if necessary
+    file_path = 'data/data.json'  # Adjust this path if necessary
     data = load_data(file_path)
-    courses, instructors, rooms, timeslots = initialize_entities(data)
+    rooms, bookings = initialize_entities(data)
 
     # Initialize Scheduler
-    scheduler = Scheduler(courses, instructors, rooms, timeslots)
+    scheduler = Scheduler(bookings, rooms)
 
     # Run scheduling
     scheduler.backtracking_search()
 
     print("Scheduling completed!")
 
-    print("\nScheduled Courses:")
-    for course_id, (timeslot, room) in scheduler.schedule.items():
-        course = next(course for course in courses if course.course_id == course_id)
-        print(f"Course {course_id} ({course.name}) scheduled at {timeslot.timeslot_id} in Room {room.room_id}")
+    print("\nScheduled Bookings:")
+    for guest_count, room in scheduler.schedule.items():
+        booking = next(booking for booking in bookings if booking.num_guests == guest_count)
+        print(f"Booking for {guest_count} guests scheduled in Room {room.room_id}")
 
-    unscheduled_course_ids = set(course.course_id for course in courses) - set(scheduler.schedule.keys())
-    if unscheduled_course_ids:
-        print("\nUnscheduled Courses:")
-        for course_id in unscheduled_course_ids:
-            course = next(course for course in courses if course.course_id == course_id)
-            reason = scheduler.unscheduled_courses.get(course_id, "Unknown reason")
-            print(f"Course {course_id} ({course.name}) could not be scheduled. Reason: {reason}")
+    unscheduled_booking_ids = set(booking.num_guests for booking in bookings) - set(scheduler.schedule.keys())
+    if unscheduled_booking_ids:
+        print("\nUnscheduled Bookings:")
+        for guest_count in unscheduled_booking_ids:
+            booking = next(booking for booking in bookings if booking.num_guests == guest_count)
+            reason = scheduler.unscheduled_bookings.get(guest_count, "Unknown reason")
+            print(f"Booking for {guest_count} guests could not be scheduled. Reason: {reason}")
     else:
-        print("\nAll courses scheduled successfully.")
+        print("\nAll bookings scheduled successfully.")
 
     # Get individual soft constraint scores
     scores = scheduler.get_individual_scores()
     print("\nSoft Constraints Scores:")
-    for course_id, score in scores.items():
-        course = next(course for course in courses if course.course_id == course_id)
-        print(f"Course {course_id} ({course.name}): Score {score}")
+    for guest_count, score in scores.items():
+        booking = next(booking for booking in bookings if booking.num_guests == guest_count)
+        print(f"Booking for {guest_count} guests: Score {score}")
 
     # Total soft constraints score
     total_score = sum(scores.values())
