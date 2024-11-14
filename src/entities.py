@@ -1,41 +1,37 @@
-class Course:
-    def __init__(self, course_id, name, instructor_id, duration, capacity, preferred_timeslots=None, preferred_rooms=None):
-        self.course_id = course_id
-        self.name = name
-        self.instructor_id = instructor_id
-        self.duration = duration
-        self.capacity = capacity
-        self.preferred_timeslots = preferred_timeslots or []
-        self.preferred_rooms = preferred_rooms or []
+# entities.py
 
-    def __repr__(self):
-        return f"Course({self.course_id}, {self.name}, {self.instructor_id}, Capacity: {self.capacity}, Duration: {self.duration})"
-
-
-class Instructor:
-    def __init__(self, instructor_id, name, available_times=None, preferred_breaks=None):
-        self.instructor_id = instructor_id
-        self.name = name
-        self.available_times = available_times or []
-        self.preferred_breaks = preferred_breaks or []
-
-    def __repr__(self):
-        return f"Instructor({self.instructor_id}, {self.name})"
-
+from datetime import datetime, timedelta
 
 class Room:
-    def __init__(self, room_id, capacity, available_times=None):
-        self.room_id = room_id
-        self.capacity = capacity
-        self.available_times = available_times or []
+    def __init__(self, room_id, capacity, version, floor, availability_dates):
+        self.room_id = room_id  # Unique ID for the room
+        self.capacity = capacity  # Maximum occupancy of the room
+        self.version = version  # Room type (e.g., standard, deluxe, suite)
+        self.floor = floor  # Floor number where the room is located
+        self.availability_dates = set(availability_dates)  # Dates when the room is available
+        self.booked_dates = set()  # Dates when the room is booked
 
     def __repr__(self):
-        return f"Room({self.room_id}, Capacity: {self.capacity})"
+        return (f"Room(ID: {self.room_id}, Capacity: {self.capacity}, Version: {self.version}, "
+                f"Floor: {self.floor}, Available Dates: {sorted(self.availability_dates)})")
 
+    
+class Booking:
+    def __init__(self, booking_id, num_guests, arrival_date, nights, room_type, preferred_floor=None):
+        self.booking_id = booking_id  # Unique ID for the booking
+        self.num_guests = num_guests  # Total number of guests in the booking
+        self.arrival_date = datetime.strptime(arrival_date, "%Y-%m-%d")  # Arrival date as datetime object
+        self.nights = nights  # Number of nights the guest will stay
+        self.departure_date = self.arrival_date + timedelta(nights)  # Departure date
+        self.room_type = room_type  # Preferred room type requested by the guest
+        self.preferred_floor = preferred_floor  # Preferred floor (optional)
 
-class Timeslot:
-    def __init__(self, timeslot_id):
-        self.timeslot_id = timeslot_id
+        # Generate set of dates for the stay
+        self.stay_dates = set(
+            (self.arrival_date + timedelta(days=i)).date()
+            for i in range(nights)
+        )
 
     def __repr__(self):
-        return f"Timeslot({self.timeslot_id})"
+        return (f"Booking(ID: {self.booking_id}, Guests: {self.num_guests}, Arrival: {self.arrival_date.date()}, "
+                f"Nights: {self.nights}, Room Type: {self.room_type}, Preferred Floor: {self.preferred_floor})")

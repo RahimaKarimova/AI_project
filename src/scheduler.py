@@ -3,34 +3,39 @@
 from constraints import check_constraints, calculate_soft_constraints_score
 
 class Scheduler:
-    def __init__(self, courses, instructors, rooms, timeslots):
-        self.courses = courses
-        self.instructors = instructors
+    def __init__(self, bookings, rooms):
+        self.bookings = bookings
         self.rooms = rooms
-        self.timeslots = timeslots
         self.schedule = {}  # Current schedule during backtracking
         self.best_schedule = {}  # Best schedule found
         self.best_score = float('-inf')  # Soft constraints score of best schedule
-        self.unscheduled_courses = {}  # Courses that couldn't be scheduled
+        self.unscheduled_bookings = {}  # Bookings that couldn't be scheduled
 
-    def assign_course(self, course, timeslot, room):
-        """Assign a course to a given timeslot and room."""
-        self.schedule[course.course_id] = (timeslot, room)
+    def assign_booking(self, booking, room):
+        """Assign a booking to a given room."""
+        self.schedule[booking.booking_id] = room  # Keyed by booking's unique ID
+        # Update the room's booked dates
+        room.booked_dates.update(booking.stay_dates)
+        # Remove booked dates from availability
+        room.availability_dates.difference_update(booking.stay_dates)
+
+    def release_booking(self, booking, room):
+        """Release a booking from a room (used during backtracking)."""
+        self.schedule.pop(booking.booking_id)
+        # Remove the booking dates from the room's booked dates
+        room.booked_dates.difference_update(booking.stay_dates)
+        # Add back the dates to availability
+        room.availability_dates.update(booking.stay_dates)
 
     def backtracking_search(self):
         """Start the backtracking algorithm."""
-        # Start backtracking with the first course
         self.backtrack(0)
-        # After backtracking, set the schedule to the best one found
-        self.schedule = self.best_schedule.copy()
 
-    def backtrack(self, course_index):
+    def backtrack(self, booking_index):
         """Recursive backtracking function."""
-        if course_index >= len(self.courses):
-            # All courses have been considered
-            # Evaluate current schedule
+        # Base condition: If we've checked all bookings, evaluate the current schedule
+        if booking_index >= len(self.bookings):
             current_score = self.evaluate_schedule()
-            # Update best schedule if current is better
             if len(self.schedule) > len(self.best_schedule):
                 self.best_schedule = self.schedule.copy()
                 self.best_score = current_score
@@ -39,34 +44,33 @@ class Scheduler:
                 self.best_score = current_score
             return
 
-        course = self.courses[course_index]
+        # Get the current booking to attempt to assign
+        booking = self.bookings[booking_index]
         assigned = False
 
-        for timeslot in self.timeslots:
-            for room in self.rooms:
-                # Check if assigning the course to this timeslot and room satisfies constraints
-                valid, reason = check_constraints(
-                    course, timeslot, room, self.schedule, self.courses, self.instructors
-                )
-                if valid:
-                    self.assign_course(course, timeslot, room)
-                    self.backtrack(course_index + 1)
-                    # Undo assignment to try other possibilities
-                    self.schedule.pop(course.course_id)
-                    assigned = True
+        for room in self.rooms:
+            # Call the constraint check function
+            valid, reason = check_constraints(booking, room, self.schedule, self.bookings)
+            if valid:
+                # If valid, assign the booking and continue to the next booking
+                self.assign_booking(booking, room)
+                self.backtrack(booking_index + 1)  # Recursive call with next booking index
+                # Undo the assignment to try other options
+                self.release_booking(booking, room)
+                assigned = True
 
-        # Try skipping the course
-        self.backtrack(course_index + 1)
+        # Even if we don't find a valid room, try the next booking
+        self.backtrack(booking_index + 1)
+
         if not assigned:
-            # Record the reason why the course couldn't be scheduled
-            self.unscheduled_courses[course.course_id] = reason or "No valid timeslot and room available"
+            self.unscheduled_bookings[booking.booking_id] = reason or "No valid room available"
 
     def evaluate_schedule(self):
         """Calculate the total soft constraint score for the current schedule."""
-        scores = calculate_soft_constraints_score(self.schedule, self.courses, self.instructors)
+        scores = calculate_soft_constraints_score(self.schedule, self.bookings)
         total_score = sum(scores.values())
         return total_score
 
     def get_individual_scores(self):
-        """Get individual soft constraint scores for the scheduled courses."""
-        return calculate_soft_constraints_score(self.schedule, self.courses, self.instructors)
+        """Get individual soft constraint scores for the scheduled bookings."""
+        return calculate_soft_constraints_score(self.schedule, self.bookings)
