@@ -5,7 +5,7 @@ from scheduler import Scheduler
 
 if __name__ == "__main__":
     # Load data
-    file_path = 'data/data.json'  # Adjust this path if necessary
+    file_path = './data/data.json'  # Adjust this path if necessary
     data = load_data(file_path)
     rooms, bookings = initialize_entities(data)
 

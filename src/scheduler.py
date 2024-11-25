@@ -36,7 +36,7 @@ class Scheduler:
         assigned = False
 
         for room in self.rooms:
-            print(f"Trying Booking: {booking} in Room: {room}")
+            print(f"\nTrying Booking: {booking} in Room: {room}")
             # Call the constraint check function
             valid, reason = check_constraints(booking, room, self.rooms)
             if valid:
