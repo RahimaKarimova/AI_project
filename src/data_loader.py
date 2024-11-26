@@ -40,4 +40,10 @@ def initialize_entities(data):
         )
         bookings.append(booking)
 
+    # Implement MRV heuristic: Sort bookings based on the number of valid rooms
+    for booking in bookings:
+        booking.valid_rooms = [room for room in rooms if room.capacity >= booking.num_guests]
+        booking.num_valid_rooms = len(booking.valid_rooms)
+    bookings.sort(key=lambda b: b.num_valid_rooms)
+
     return rooms, bookings

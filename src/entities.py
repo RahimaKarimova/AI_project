@@ -15,12 +15,12 @@ class Room:
         return (f"Room(ID: {self.room_id}, Capacity: {self.capacity}, Version: {self.version}, "
                 f"Floor: {self.floor}, Available Dates: {sorted(self.availability_dates)})")
 
-    
+
 class Booking:
     def __init__(self, booking_id, num_guests, arrival_date, nights, room_type, preferred_floor=None):
         self.booking_id = booking_id  # Unique ID for the booking
         self.num_guests = num_guests  # Total number of guests in the booking
-        self.arrival_date = datetime.strptime(arrival_date, "%Y-%m-%d")  # Arrival date as datetime object
+        self.arrival_date = datetime.strptime(arrival_date, "%Y-%m-%d").date()  # Arrival date as date object
         self.nights = nights  # Number of nights the guest will stay
         self.departure_date = self.arrival_date + timedelta(nights)  # Departure date
         self.room_type = room_type  # Preferred room type requested by the guest
@@ -28,10 +28,14 @@ class Booking:
 
         # Generate set of dates for the stay
         self.stay_dates = set(
-            (self.arrival_date + timedelta(days=i)).date()
+            (self.arrival_date + timedelta(days=i))
             for i in range(nights)
         )
 
+        # Attributes for heuristics
+        self.valid_rooms = []
+        self.num_valid_rooms = 0
+
     def __repr__(self):
-        return (f"Booking(ID: {self.booking_id}, Guests: {self.num_guests}, Arrival: {self.arrival_date.date()}, "
+        return (f"Booking(ID: {self.booking_id}, Guests: {self.num_guests}, Arrival: {self.arrival_date}, "
                 f"Nights: {self.nights}, Room Type: {self.room_type}, Preferred Floor: {self.preferred_floor})")

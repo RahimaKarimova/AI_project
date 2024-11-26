@@ -22,16 +22,19 @@ if __name__ == "__main__":
     print("Scheduling completed!")
 
     print("\nScheduled Bookings:")
-    for booking_id, room in scheduler.schedule.items():
-        booking = next(booking for booking in bookings if booking.booking_id == booking_id)
-        stay_dates_str = ', '.join([date.strftime("%Y-%m-%d") for date in sorted(booking.stay_dates)])
-        print(f"Reservation ID: {booking_id}")
-        print(f"  Room Assigned: {room.room_id}")
-        print(f"  Number of Guests: {booking.num_guests}")
-        print(f"  Stay Dates: {stay_dates_str}")
-        print(f"  Room Type: {room.version}")
-        print(f"  Floor: {room.floor}")
-        print("-" * 40)
+    if scheduler.schedule:
+        for booking_id, room in scheduler.schedule.items():
+            booking = next(booking for booking in bookings if booking.booking_id == booking_id)
+            stay_dates_str = ', '.join([date.strftime("%Y-%m-%d") for date in sorted(booking.stay_dates)])
+            print(f"Reservation ID: {booking_id}")
+            print(f"  Room Assigned: {room.room_id}")
+            print(f"  Number of Guests: {booking.num_guests}")
+            print(f"  Stay Dates: {stay_dates_str}")
+            print(f"  Room Type: {room.version}")
+            print(f"  Floor: {room.floor}")
+            print("-" * 40)
+    else:
+        print("No bookings were scheduled.")
 
     unscheduled_booking_ids = set(booking.booking_id for booking in bookings) - set(scheduler.schedule.keys())
     if unscheduled_booking_ids:
@@ -52,11 +55,13 @@ if __name__ == "__main__":
 
     # Get individual soft constraint scores
     scores = scheduler.get_individual_scores()
-    print("\nSoft Constraints Scores:")
-    for booking_id, score in scores.items():
-        booking = next(booking for booking in bookings if booking.booking_id == booking_id)
-        print(f"Reservation ID: {booking_id} - Score: {score}")
+    if scores:
+        print("\nSoft Constraints Scores:")
+        for booking_id, score in scores.items():
+            print(f"Reservation ID: {booking_id} - Score: {score}")
 
-    # Total soft constraints score
-    total_score = sum(scores.values())
-    print(f"\nTotal Soft Constraints Score: {total_score}")
+        # Total soft constraints score
+        total_score = sum(scores.values())
+        print(f"\nTotal Soft Constraints Score: {total_score}")
+    else:
+        print("\nNo soft constraints scores to display.")
