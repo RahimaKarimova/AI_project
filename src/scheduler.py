@@ -10,7 +10,7 @@ class Scheduler:
         self.best_schedule = {}  # Best schedule found
         self.best_score = float('-inf')  # Soft constraints score of best schedule
         self.unscheduled_bookings = {}  # Bookings that couldn't be scheduled
-        self.found_complete_schedule = False  # Flag to indicate if a complete schedule has been found
+        self.max_bookings_scheduled = 0  # Maximum number of bookings scheduled so far
 
     def assign_booking(self, booking, room):
         """Assign a booking to a given room."""
@@ -41,28 +41,6 @@ class Scheduler:
                 count += 1
         return count
 
-    def is_forward_checking_valid(self, booking_index, room, booking):
-        """Check if assigning the room to the booking will not cause a dead end."""
-        # Temporarily assign the booking to the room
-        self.assign_booking(booking, room)
-        for i in range(booking_index + 1, len(self.bookings)):
-            future_booking = self.bookings[i]
-            has_valid_room = False
-            for future_room in self.rooms:
-                if future_room.capacity < future_booking.num_guests:
-                    continue
-                if not future_booking.stay_dates.issubset(future_room.availability_dates):
-                    continue
-                has_valid_room = True
-                break
-            if not has_valid_room:
-                # Undo the assignment before returning
-                self.release_booking(booking, room)
-                return False
-        # Undo the assignment before returning
-        self.release_booking(booking, room)
-        return True
-
     def backtracking_search(self):
         """Start the backtracking algorithm."""
         self.backtrack(0)
@@ -72,20 +50,19 @@ class Scheduler:
         # Base condition: If we've checked all bookings, evaluate the current schedule
         if booking_index >= len(self.bookings):
             current_score = self.evaluate_schedule()
-            if len(self.schedule) > len(self.best_schedule):
+            if len(self.schedule) > self.max_bookings_scheduled:
                 self.best_schedule = self.schedule.copy()
                 self.best_score = current_score
-                if len(self.schedule) == len(self.bookings):
-                    self.found_complete_schedule = True
-            elif len(self.schedule) == len(self.best_schedule) and current_score > self.best_score:
+                self.max_bookings_scheduled = len(self.schedule)
+            elif len(self.schedule) == self.max_bookings_scheduled and current_score > self.best_score:
                 self.best_schedule = self.schedule.copy()
                 self.best_score = current_score
             return
 
-        # Check if it's possible to beat the best schedule
+        # Prune branches that cannot result in a better schedule
         remaining_bookings = len(self.bookings) - booking_index
         potential_total = len(self.schedule) + remaining_bookings
-        if self.found_complete_schedule and potential_total <= len(self.best_schedule):
+        if potential_total <= self.max_bookings_scheduled:
             return  # Cannot beat the best schedule, prune the branch
 
         # Get the current booking to attempt to assign
@@ -103,11 +80,11 @@ class Scheduler:
         valid_rooms.sort(key=lambda r: self.count_future_constraints(booking_index + 1, r))
 
         for room in valid_rooms:
-            if self.is_forward_checking_valid(booking_index, room, booking):
-                self.assign_booking(booking, room)
-                self.backtrack(booking_index + 1)
-                self.release_booking(booking, room)
-                assigned = True
+            # Optionally remove or adjust the forward checking
+            self.assign_booking(booking, room)
+            self.backtrack(booking_index + 1)
+            self.release_booking(booking, room)
+            assigned = True
 
         if not assigned:
             self.unscheduled_bookings[booking.booking_id] = "No valid room available"
