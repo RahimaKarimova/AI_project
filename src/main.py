@@ -65,3 +65,13 @@ if __name__ == "__main__":
         print(f"\nTotal Soft Constraints Score: {total_score}")
     else:
         print("\nNo soft constraints scores to display.")
+
+    # Print logs and statistics
+    print("\n--- Statistics and Logs ---")
+    print(f"Total Attempts: {scheduler.attempts}")
+    print(f"Total Bookings: {len(bookings)}")
+    print(f"Successful Bookings: {len(scheduler.schedule)}")
+    print(f"Unsuccessful Bookings: {len(unscheduled_booking_ids)}")
+    # print("\nFailure Reasons:")
+    # for reason, count in scheduler.failure_reasons.items():
+    #     print(f"  {reason}: {count}")

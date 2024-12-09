@@ -2,20 +2,23 @@
 
 def check_constraints(booking, room, schedule, bookings):
     """Check if assigning a booking to a room satisfies all hard constraints."""
-    # Check if the room has enough capacity for the number of guests in the booking
+
+    # Check if the room has enough capacity
     if room.capacity < booking.num_guests:
+        reason = (f"Room {room.room_id} capacity ({room.capacity}) is less than the number of guests ({booking.num_guests})")
         # Debug statement
-        print(f"Booking {booking.booking_id}: Room {room.room_id} capacity insufficient.")
-        return False, f"Room {room.room_id} capacity ({room.capacity}) is less than the number of guests ({booking.num_guests})"
+        # print(f"Booking {booking.booking_id}: {reason}")
+        return False, reason
 
     # Check if the room is available for all the booking dates
     if not booking.stay_dates.issubset(room.availability_dates):
         unavailable_dates = booking.stay_dates - room.availability_dates
+        reason = f"Room {room.room_id} is not available on dates: {sorted(unavailable_dates)}"
         # Debug statement
-        print(f"Booking {booking.booking_id}: Room {room.room_id} not available on dates {sorted(unavailable_dates)}.")
-        return False, f"Room {room.room_id} is not available on dates: {sorted(unavailable_dates)}"
+        # print(f"Booking {booking.booking_id}: {reason}")
+        return False, reason
 
-    # All hard constraints are satisfied
+    # If all constraints are satisfied
     return True, None
 
 

@@ -1,7 +1,9 @@
+# scheduler.py
+
 from constraints import check_constraints, calculate_soft_constraints_score
 
 class Scheduler:
-    MAX_ATTEMPTS = 10000  # Set an upper bound on the number of attempts
+    MAX_ATTEMPTS = 100000  # Set an upper bound on the number of attempts
 
     def __init__(self, bookings, rooms):
         self.bookings = bookings
@@ -12,7 +14,9 @@ class Scheduler:
         self.unscheduled_bookings = {}
         self.max_bookings_scheduled = 0
 
-        self.attempts = 0  # Count how many times we've attempted backtracking
+        self.attempts = 0          # Count how many times we've attempted (checking constraints, assigning, etc.)
+        self.failure_reasons = {}  # Record reasons for failures
+        # Example structure: { "Insufficient capacity": 3, "Unavailable dates: [...]": 2}
 
     def assign_booking(self, booking, room):
         """Assign a booking to a given room."""
@@ -84,10 +88,11 @@ class Scheduler:
         # Current booking
         booking = self.bookings[booking_index]
 
-        # Find valid rooms
+        # Check all rooms for validity
         valid_rooms = []
+        room_failure_reasons = []  # Collect reasons why certain rooms fail
+
         for room in self.rooms:
-            # Each check increments attempts as well, to avoid too much repetition
             self.attempts += 1
             if self.attempts > self.MAX_ATTEMPTS:
                 # Ran out of attempts during constraint checks
@@ -97,17 +102,28 @@ class Scheduler:
                         self.unscheduled_bookings[b.booking_id] = "No valid room found within attempt limit."
                 return
 
-            valid, _ = check_constraints(booking, room, self.schedule, self.bookings)
+            valid, reason = check_constraints(booking, room, self.schedule, self.bookings)
             if valid:
                 valid_rooms.append(room)
+           
+            else:
+                if reason:
+                    room_failure_reasons.append(reason)
+                    # Log the reason globally
+                    # self.failure_reasons[reason] = self.failure_reasons.get(reason, 0) + 1
 
         if not valid_rooms:
             # No valid room for this booking
-            self.unscheduled_bookings[booking.booking_id] = "No valid room available"
+            # Instead of collecting all reasons, just give one generic reason:
+            self.unscheduled_bookings[booking.booking_id] = (
+                f"No available room could accommodate {booking.num_guests} guests "
+                f"from {booking.arrival_date} to {booking.departure_date}."
+            )
             self.backtrack(booking_index + 1)
             return
 
-        # Sort valid rooms by LCV, then by immediate soft gain
+
+        # Sort valid rooms by LCV (least constraining value), then by immediate soft gain
         valid_rooms.sort(key=lambda r: (self.count_future_constraints(booking_index + 1, r),
                                         -self.calculate_immediate_soft_gain(booking, r)))
 
@@ -122,6 +138,7 @@ class Scheduler:
                 return
 
         if not assigned:
+            # It means even after trying all valid rooms, we couldn't improve
             self.unscheduled_bookings[booking.booking_id] = "No valid assignment found after attempts."
             self.backtrack(booking_index + 1)
 
